@@ -31,20 +31,26 @@ var sendEmails = function(jobs, cb) {
   });
 };
 
+var act_for_user = function(user, users) {
+  slack.getReactions(user, function(err, jobs) {
+    if (err) throw err;
+    var populated = populateJobs(jobs, users);
+    cache.filter(jobs, function(errs, jobs) {
+      if (errs.length) console.error(errs);
+      sendEmails(jobs, function(errs, sent) {
+        if (errs.length) console.error(errs);
+        cache.populate(sent);
+      });
+    });
+  });
+};
+
 var go_rocketship_go = function() {
   slack.getUsers(function(err, users) {
     if (err) throw err;
-    slack.getReactions(function(err, jobs) {
-      if (err) throw err;
-      var populated = populateJobs(jobs, users);
-      cache.filter(jobs, function(errs, jobs) {
-        if (errs.length) console.error(errs);
-        sendEmails(jobs, function(errs, sent) {
-          if (errs.length) console.error(errs);
-          cache.populate(sent);
-        });
-      });
-    });
+    for (user in users) {
+      act_for_user(user, users);
+    };
   });
 };
 
