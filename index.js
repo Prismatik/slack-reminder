@@ -31,10 +31,17 @@ var sendEmails = function(jobs, cb) {
   });
 };
 
+var filterExtraneousUsers = function(user) {
+  return function(job) {
+    return (job.user === user);
+  };
+};
+
 var act_for_user = function(user, users) {
   slack.getReactions(user, function(err, jobs) {
     if (err) throw err;
-    var populated = populateJobs(jobs, users);
+    var filtered = jobs.filter(filterExtraneousUsers(user));
+    var populated = populateJobs(filtered, users);
     cache.filter(jobs, function(errs, jobs) {
       if (errs.length) console.error(errs);
       sendEmails(jobs, function(errs, sent) {
