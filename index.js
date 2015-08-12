@@ -42,10 +42,10 @@ var act_for_user = function(user, users) {
     if (err) throw err;
     var filtered = jobs.filter(filterExtraneousUsers(user));
     var populated = populateJobs(filtered, users);
-    cache.filter(jobs, function(errs, jobs) {
+    cache.filter(populated, function(errs, uncached) {
       if (errs.length) console.error(errs);
-      sendEmails(jobs, function(errs, sent) {
-        if (errs.length) console.error(errs);
+      sendEmails(uncached, function(errs, sent) {
+        if (errs.length) return console.error(errs);
         cache.populate(sent);
       });
     });
